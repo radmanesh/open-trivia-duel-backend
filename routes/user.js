@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../db'); // Import database connection
+const User = require('../models/user'); // Import User model
 
 /**
  * @description Register user
@@ -8,8 +8,9 @@ const db = require('../db'); // Import database connection
  */
 router.post('/signup', async (req, res) => {
   const { username, password } = req.body;
+  const user = new User(username, password);
   try {
-    await db.query('INSERT INTO users (username, password) VALUES ($1, $2)', [username, password]);
+    await user.save();
     res.status(201).send('User signup successful');
   } catch (error) {
     res.status(500).send('Error registering user');
@@ -23,8 +24,8 @@ router.post('/signup', async (req, res) => {
 router.post('/login', async (req, res) => {
   const { username, password } = req.body;
   try {
-    const result = await db.query('SELECT * FROM users WHERE username = $1 AND password = $2', [username, password]);
-    if (result.rows.length > 0) {
+    const user = await User.findByCredentials(username, password);
+    if (user) {
       res.send('User login successful');
     } else {
       res.status(401).send('Invalid credentials');
@@ -41,9 +42,9 @@ router.post('/login', async (req, res) => {
 router.get('/:id', async (req, res) => {
   const userId = req.params.id;
   try {
-    const result = await db.query('SELECT * FROM users WHERE id = $1', [userId]);
-    if (result.rows.length > 0) {
-      res.json(result.rows[0]);
+    const user = await User.findById(userId);
+    if (user) {
+      res.json(user);
     } else {
       res.status(404).send('User not found');
     }
@@ -59,8 +60,9 @@ router.get('/:id', async (req, res) => {
 router.put('/:id', async (req, res) => {
   const userId = req.params.id;
   const { username, password } = req.body;
+  const user = new User(username, password);
   try {
-    await db.query('UPDATE users SET username = $1, password = $2 WHERE id = $3', [username, password, userId]);
+    await user.update(userId);
     res.send('User settings updated');
   } catch (error) {
     res.status(500).send('Error updating user settings');
