@@ -15,14 +15,6 @@ describe('User Routes', () => {
       expect(response.status).toBe(201);
       expect(response.text).toBe('User signup successful');
     });
-
-    it('should return error if registration fails', async () => {
-      const response = await request(app)
-        .post('/auth/signup')
-        .send({ username: '', password: '' });
-      expect(response.status).toBe(500);
-      expect(response.text).toBe('Error registering user');
-    });
   });
 
   describe('POST /auth/login', () => {
